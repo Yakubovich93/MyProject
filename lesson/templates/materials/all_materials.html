@@ -21,5 +21,7 @@ Materials list
             {{ material.body|truncatewords:5|linebreaks }}
         </p>
     {% endfor %}
-
+    <p>
+        <a href="{% url "lesson:create_form" %}">Create New Material</a>
+    </p>
 {% endblock %}

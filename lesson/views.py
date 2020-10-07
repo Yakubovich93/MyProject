@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.mail import send_mail
 
+from django.contrib.auth.models import User
+
 from . import models
 from . import forms
 # Create your views here.
@@ -10,11 +12,13 @@ BODY_TEMPLATE = (
                     "Comment: {comment}"
             )
 
+
 def all_materials(request):
     materials_list = models.Material.objects.all()
     return render(request,
                   'materials/all_materials.html',
                   {'materials': materials_list})
+
 
 def material_details(request, year, month, day, slug):
     material = get_object_or_404(models.Material,
@@ -24,7 +28,8 @@ def material_details(request, year, month, day, slug):
                                  publish__day=day)
     return render(request,
                   'materials/detail.html',
-                  {'material':material})
+                  {'material': material})
+
 
 def share_material(request, material_id):
     material = get_object_or_404(models.Material,
@@ -58,7 +63,24 @@ def share_material(request, material_id):
         form = forms.EmailMaterialForm()
     return render(request,
                   'materials/share.html',
-                  {'material':material,
-                   'form':form,
+                  {'material': material,
+                   'form': form,
                    'sent': sent})
 
+
+def create_form(request):
+    if request.method == 'POST':
+        material_form = forms.MaterialForm(request.POST)
+        if material_form.is_valid():
+            new_material = material_form.save(commit=False)
+            new_material.author = User.objects.first()
+            new_material.slug = new_material.title.replace(' ', '-')
+            new_material.save()
+            return render(request,
+                          'materials/detail.html',
+                          {'material': new_material})
+    else:
+        material_form = forms.MaterialForm()
+    return render(request,
+                  'materials/create.html',
+                  {'form': material_form})
